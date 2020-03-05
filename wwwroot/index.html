@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>whosmcu</title>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+        <link rel="stylesheet" href="/css/app.css">
+        <link href="https://fonts.googleapis.com/css?family=Mukta|Exo+2" rel="stylesheet">
+        <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+    </head>
+    <body>
+        <div id="app" v-cloak>
+            <span class="spinner" v-if="loading"><i class="fa fa-circle-o-notch fa-spin"></i></span>
+            <div class="container wm-margin-top--20">
+                <div class="row">
+                    <div class="col-sm">
+                        <div class="form-group">
+                            <label>Actor name</label>
+                            <input type="text" class="form-control" v-model="actorName">
+                        </div>
+                        <button type="button" class="btn btn-primary" v-on:click="getActors()">Search</button>
+
+                        <!--results-->
+                        <div v-if="searched" class="wm-margin-top--20">
+                            <h4 v-if="!actors || actors.length == 0">Nope.</h4>
+                            <div v-else>
+                                <h4>Results</h4>
+                                <ul class="wm-list-style--none">
+                                    <li v-for="actor in actors" class="wm-margin-v--10" style="margin-left: -40px;">
+                                        <div class="row">
+                                            <div class="col-2">
+                                                <div style="width: 75px; height: 75px; background-color: #ccc;"></div>
+                                            </div>
+                                            <div class="col-8">
+                                                <h4>{{ actor.fullName }}</h3>
+                                                <span>{{ actor.characterNames }}</span>
+                                            </div>
+                                            
+                                            <div class="col-2">
+                                                <span class="badge badge-pill badge-info">Movies: {{ actor.movieCount }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="row" v-if="actor.movies && actor.movies.length > 0">
+                                            <div class="col-sm table-responsive">
+                                                <h5>Movies</h5>
+                                                <table class="table table-striped table-sm">
+                                                    <thead>
+                                                        <tr>
+                                                            <th></th>
+                                                            <th>Title</th>
+                                                            <th>Release Date</th>
+                                                            <th>Character</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr v-for="movie in actor.movies">
+                                                            <td><div style="width: 50px; height: 50px; background-color: #ccc;"></div></td>
+                                                            <td>{{ movie.title }}</td>
+                                                            <td>{{ movie.releaseDate | moment }}</td>
+                                                            <td>{{ movie.characterName }}</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <!--results end-->
+                    </div>
+                    <div class="col-sm">
+                        <div class="wm-height--500 wm-overflow-y--auto wm-background-color--gray wm-padding--10">
+                            <pre >{{ $data }}</pre>
+                        </div>
+                    </div>
+                </div>
+
+                
+            </div>
+
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
+        <!--vue-->
+        <script type="text/javascript">
+
+            Vue.filter('moment', function (date, format) {
+               if (date == null || date == '') return "";
+               if (format == null || format == '') format = "MM/DD/YYYY";
+               return moment(date).format(format);
+           });
+
+        var app = new Vue({
+                el: '#app',
+                data: {
+                    loading: false,
+                    apiUrl: "https://whosmcu-api.herokuapp.com/",
+                    model: null,
+                    actorName: '',
+                    actors: [],
+                    searched: false,
+                },//end data
+                methods: {
+
+                    getActors: function(){
+                        if(this.actorName === '')
+                            return;
+
+                        this.loading = true;
+                        axios({
+                            method: 'get',
+                            url: this.apiUrl + 'mcuactors?name=' + this.actorName,
+                        })
+                        .then(r => {
+                            console.log(r);
+                            this.model = r.data;
+                            this.actors = r.data.items;
+                            this.loading = false;
+                            this.searched = true;
+                        })
+                        .catch(error => {
+                            console.log(error);
+                            this.loading = false;
+                            this.handleError(error);
+                        });
+                    },
+                    handleError: function(error){
+                        if (error.response) {
+                            // The request was made and the server responded with a status code
+                            // that falls out of the range of 2xx
+                            // console.log(error.response.data);
+                            // console.log(error.response.status);
+                            // console.log(error.response.headers);
+                            if(error.response.status === 401){
+                                localStorage.removeItem(this.ACCESS_TOKEN);
+                                this.message = 'Unauthorized';
+                            }
+                            //login error
+                            if(error.response.status === 400 && error.response.data.error === "invalid_grant"){
+                                this.message = 'Invalid credentials';
+                            }
+
+                        } else if (error.request) {
+                            // The request was made but no response was received
+                            // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+                            // http.ClientRequest in node.js
+                            console.log(error.request);
+                        } else {
+                            // Something happened in setting up the request that triggered an Error
+                            console.log('Error', error.message);
+                        }
+                        console.log(error.config);
+                    },
+
+
+
+                },//end methods
+                mounted: function(){
+ 
+                } 
+                    
+            })//end app
+        </script>
+        <!--end vue-->
+    </body>
+</html>

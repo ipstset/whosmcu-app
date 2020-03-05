@@ -1,0 +1,21 @@
+[v-cloak] {display: none}
+
+.spinner {
+    font-size:24px; 
+    position: fixed; 
+    top: 4px; 
+    left: 4px; 
+}
+
+.wm-margin-left---40 {
+    margin-left: -40px;
+}
+
+.wm-margin-top--20 { margin-top: 20px;}
+.wm-margin-v--10 {margin: 10px 0;}
+.wm-height--500 { height: 500px; }
+.wm-overflow-y--auto { overflow-y: auto;}
+.wm-background-color--gray { background-color: #e1e1e1;}
+.wm-padding--10 {padding: 10px;}
+.wm-list-style--none {list-style-type: none; margin-left: 0; }
+.wm-border-bottom { border-bottom: solid 1px #ccc;}
