@@ -3,8 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="description" content="Who's in the MCU - Actors of the Marvel Cinematic Universe">
-        <title>Who's in the MCU?</title>
+        <title>whosmcu</title>
         <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
         <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.css">
         <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/milligram/1.3.0/milligram.css">
@@ -14,23 +13,23 @@
     </head>
     <body>
         <div id="app" v-cloak>
-          
+            <span class="spinner" v-if="loading"><i class="fa fa-circle-o-notch fa-spin"></i></span>
             <div class="wm-margin-top--20">
 
                 <div class="container">
                     <div class="row">
                         <div class="column">
-                            <h1>Who's in the MCU?</h1>
+
                             <div>
                                 <label>Actor name</label>
                                 <input type="text" v-model="actorName">
-                                <button class="button" v-on:click="getActors()">
-                                   Search <span class="spinner" v-if="loading"><i class="fa fa-circle-o-notch fa-spin"></i></span>
-                                </button>
-
-                                
+                                <input class="button" type="submit" v-on:click="getActors()" value="Search">
                             </div>
                             <result-list v-bind:results="actors"></result-list>
+
+                        </div>
+                        <div class="column column-50">
+                            <pre><code>{{ $data }}</code></pre>
                         </div>
                     </div>
 
@@ -44,7 +43,6 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
         <script src="/js/result-list.component.js"></script>
-        <script src="/js/result-item.component.js"></script>
         <!--vue-->
         <script type="text/javascript">
 
@@ -61,7 +59,7 @@
                     apiUrl: "https://whosmcu-api.herokuapp.com/",
                     model: null,
                     actorName: '',
-                    actors: null,
+                    actors: [],
                     searched: false,
                 },//end data
                 methods: {
@@ -69,7 +67,7 @@
                     getActors: function(){
                         if(this.actorName === '')
                             return;
-                        this.actors = null;
+
                         this.loading = true;
                         axios({
                             method: 'get',
